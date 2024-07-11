@@ -5,8 +5,8 @@
 ## Introduction
 Welcome to "Kale Me Maybe" – an innovative AI-driven recipe generator tailored specifically for vegetarians. This platform revolutionizes home cooking by simplifying the process of meal preparation. With just a few clicks, users can input the ingredients they have available, and "Kale Me Maybe" instantly crafts a personalized recipe suited to their tastes and available resources. Whether you're a seasoned vegetarian or just exploring meatless options, "Kale Me Maybe" ensures that your meals are not only nutritious but also delicious and easy to prepare.
 
-The live "Kale Me Maybe" application is accessible via this link:
-
+⚠️<strong><em>Sorry, this website is not available anymore</em></strong>  
+The live "Kale Me Maybe" application is accessible via this link:  
 [**Kale Me Maybe - Live Application**](http://d1isuxwjx7fugi.cloudfront.net/)
 
 ## Table of Contents
