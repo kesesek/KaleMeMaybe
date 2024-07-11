@@ -1,9 +1,11 @@
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 
 async function getRecentSearchesByUserId(userId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const [recentSearches] = await db.execute(
       SQL`      
     SELECT 
@@ -24,6 +26,8 @@ async function getRecentSearchesByUserId(userId) {
   } catch (err) {
     console.error("Failed to retrieve recent searches from the database:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 

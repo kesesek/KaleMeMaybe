@@ -1,11 +1,11 @@
 require("dotenv").config();
 const fs = require("fs").promises;
 const path = require("path");
-const dbPromise = require("../data/database.js");
+const pool = require("../data/database.js");
 
 async function insertIngredients() {
   try {
-    const db = await dbPromise;
+    const db = await pool.getConnection();
     const filePath = path.join(__dirname, "./vegan_ingredients_data.json");
     const data = await fs.readFile(filePath, "utf8");
     const ingredients = JSON.parse(data);

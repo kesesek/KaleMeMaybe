@@ -1,15 +1,20 @@
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 
 // retrieve avatar by image path
 async function retrieveAvatarByPath(avatarPath) {
-  const db = await dbPromise;
+  let db;
+  try {
+    db = await pool.getConnection();
 
-  const [avatar] = await db.execute(
-    SQL`SELECT * FROM avatar WHERE image_path = ${avatarPath}`
-  );
+    const [avatar] = await db.execute(
+      SQL`SELECT * FROM avatar WHERE image_path = ${avatarPath}`
+    );
 
-  return avatar[0]; 
+    return avatar[0];
+  } finally {
+    if (db) db.release();
+  }
 }
 
 // Export functions.

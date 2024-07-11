@@ -1,6 +1,5 @@
-
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const saltRounds = 10;
@@ -15,17 +14,26 @@ async function checkPassword(password, hashedPassword) {
 }
 
 async function retrieveThirdPartyAccount(provider, provider_id) {
-  const db = await dbPromise;
-  const [rows] = await db.execute(
-    `SELECT * FROM third_party_account WHERE provider_name = ? AND provider_user_id = ?`,
-    [provider, provider_id]
-  );
-  return rows[0]; 
+  let db;
+  try {
+    db = await pool.getConnection();
+
+    const [rows] = await db.execute(
+      `SELECT * FROM third_party_account WHERE provider_name = ? AND provider_user_id = ?`,
+      [provider, provider_id]
+    );
+    return rows[0];
+  } finally {
+    if (db) db.release();
+  }
 }
 
 async function insertThirdPartyTable(user_id, provider, provider_id) {
-  const db = await dbPromise;
+  let db;
+
   try {
+    db = await pool.getConnection();
+
     const [result] = await db.execute(
       `INSERT INTO third_party_account (user_id, provider_name, provider_user_id) VALUES (?, ?, ?)`,
       [user_id, provider, provider_id]
@@ -34,12 +42,17 @@ async function insertThirdPartyTable(user_id, provider, provider_id) {
   } catch (error) {
     console.error("Error inserting to new third party table:", error);
     throw error;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function insertNewThirdUser(email) {
-  const db = await dbPromise;
+  let db;
+
   try {
+    db = await pool.getConnection();
+
     const [result] = await db.execute(
       `INSERT INTO user (email, encrypted_password) VALUES (?, ?)`,
       [email, ""]
@@ -48,12 +61,17 @@ async function insertNewThirdUser(email) {
   } catch (error) {
     console.error("Error inserting new third party user:", error);
     throw error;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function insertNewUser(userData) {
-  const db = await dbPromise;
+  let db;
+
   try {
+    db = await pool.getConnection();
+
     const { email, encrypted_password } = userData;
     const [result] = await db.execute(
       `INSERT INTO user (email, encrypted_password) VALUES (?, ?)`,
@@ -63,6 +81,8 @@ async function insertNewUser(userData) {
   } catch (error) {
     console.error("Error inserting new user:", error);
     throw error;
+  } finally {
+    if (db) db.release();
   }
 }
 
@@ -77,12 +97,18 @@ async function hashPassword(password) {
 }
 
 async function retrieveUserAvatarById(avatar_id) {
-  const db = await dbPromise;
-  const [rows] = await db.execute(
-    `SELECT * FROM avatar WHERE id = ?`,
-    [avatar_id]
-  );
-  return rows[0]; 
+  let db;
+
+  try {
+    db = await pool.getConnection();
+
+    const [rows] = await db.execute(`SELECT * FROM avatar WHERE id = ?`, [
+      avatar_id,
+    ]);
+    return rows[0];
+  } finally {
+    if (db) db.release();
+  }
 }
 
 function generateToken(user) {
@@ -99,21 +125,32 @@ function generateToken(user) {
 }
 
 async function retrieveUserByEmail(email) {
-  const db = await dbPromise;
-  const [rows] = await db.execute(
-    `SELECT * FROM user WHERE email = ?`,
-    [email]
-  );
-  return rows[0]; 
+  let db;
+  try {
+    db = await pool.getConnection();
+
+    const [rows] = await db.execute(`SELECT * FROM user WHERE email = ?`, [
+      email,
+    ]);
+    return rows[0];
+  } finally {
+    if (db) db.release();
+  }
 }
 
 async function retrieveUserById(userId) {
-  const db = await dbPromise;
-  const [rows] = await db.execute(
-    `SELECT id, name, bio, gender, city, avatar_id, DATE_FORMAT(birth_date, '%Y-%m-%d') AS birth_date FROM user WHERE id = ?`,
-    [userId]
-  );
-  return rows[0];
+  let db;
+  try {
+    db = await pool.getConnection();
+
+    const [rows] = await db.execute(
+      `SELECT id, name, bio, gender, city, avatar_id, DATE_FORMAT(birth_date, '%Y-%m-%d') AS birth_date FROM user WHERE id = ?`,
+      [userId]
+    );
+    return rows[0];
+  } finally {
+    if (db) db.release();
+  }
 }
 
 async function updateUserProfileById(
@@ -125,12 +162,18 @@ async function updateUserProfileById(
   city,
   avatar_id
 ) {
-  const db = await dbPromise;
-  const [result] = await db.execute(
-    `UPDATE user SET name = ?, bio = ?, gender = ?, birth_date = ?, city = ?, avatar_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
-    [name, bio, gender, birthDate, city, avatar_id, id]
-  );
-  return result;
+  let db
+  try {
+    db = await pool.getConnection();
+
+    const [result] = await db.execute(
+      `UPDATE user SET name = ?, bio = ?, gender = ?, birth_date = ?, city = ?, avatar_id = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?`,
+      [name, bio, gender, birthDate, city, avatar_id, id]
+    );
+    return result;
+  } finally {
+    if (db) db.release();
+  }
 }
 
 module.exports = {

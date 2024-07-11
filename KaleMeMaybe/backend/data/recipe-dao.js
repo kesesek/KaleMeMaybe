@@ -1,35 +1,44 @@
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 
 async function getAllRecipes() {
-  const db = await dbPromise;
+  let db;
   try {
-      const query = `
+    db = await pool.getConnection();
+
+    const query = `
           SELECT *
           FROM recipe
           ORDER BY id DESC;
       `;
-      const [recipes] = await db.query(query);
-      return recipes;
+    const [recipes] = await db.query(query);
+    return recipes;
   } catch (err) {
-      console.error("Failed to retrieve all recipes from the database:", err);
-      throw err;
+    console.error("Failed to retrieve all recipes from the database:", err);
+    throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function retrieveRecipeById(userid, id) {
-  const db = await dbPromise;
+  let db;
+  try {
+    db = await pool.getConnection();
 
-  const recipe = await db.query(SQL`SELECT * FROM recipe WHERE id = ${id}`);
-  
-  const favoriteCheck = await db.query(SQL`
+    const recipe = await db.query(SQL`SELECT * FROM recipe WHERE id = ${id}`);
+
+    const favoriteCheck = await db.query(SQL`
     SELECT * FROM collection_recipe 
     WHERE recipe_id = ${id} AND collection_id IN (
       SELECT id FROM collection WHERE user_id = ${userid}
     )
   `);
 
-  return { isFavorited: favoriteCheck[0].length > 0, recipe: recipe[0][0] };
+    return { isFavorited: favoriteCheck[0].length > 0, recipe: recipe[0][0] };
+  } finally {
+    if (db) db.release();
+  }
 }
 
 // insert new generated recipe into recipe table and search history table
@@ -39,9 +48,11 @@ async function insertRecipeAndSearchHistory(
   user_id,
   ingredients
 ) {
-  let db = await dbPromise;
+  let db;
   try {
     // start transaction
+    db = await pool.getConnection();
+
     await db.beginTransaction();
 
     // insert recipe data
@@ -85,7 +96,6 @@ async function insertRecipeAndSearchHistory(
     );
     const searchHistoryId = searchHistoryResult.insertId;
 
-
     // insert history_ingredient table
     for (let ingredient of ingredients) {
       await db.execute(
@@ -104,11 +114,15 @@ async function insertRecipeAndSearchHistory(
     await db.rollback();
     console.error("Failed to insert recipe and search history:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 async function removeRecipeFromFavourites(userId, recipeId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const query = SQL`
       DELETE FROM collection_recipe
       WHERE recipe_id = ${recipeId} AND collection_id IN (
@@ -119,13 +133,17 @@ async function removeRecipeFromFavourites(userId, recipeId) {
   } catch (err) {
     console.error("Failed to remove recipe from favourites:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getRecipesSortByDifficultyAsc() {
-  const db = await dbPromise;
+  let db;
   try {
-      const query = `
+    db = await pool.getConnection();
+
+    const query = `
           SELECT *
           FROM recipe
           ORDER BY 
@@ -137,18 +155,25 @@ async function getRecipesSortByDifficultyAsc() {
               END,
               created_at DESC;
       `;
-      const [recipes] = await db.query(query);
-      return recipes;
+    const [recipes] = await db.query(query);
+    return recipes;
   } catch (err) {
-      console.error("Failed to retrieve sorted recipes by difficulty (asc) from the database:", err);
-      throw err;
+    console.error(
+      "Failed to retrieve sorted recipes by difficulty (asc) from the database:",
+      err
+    );
+    throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getRecipesSortByDifficultyDesc() {
-  const db = await dbPromise;
+  let db;
   try {
-      const query = `
+    db = await pool.getConnection();
+
+    const query = `
           SELECT *
           FROM recipe
           ORDER BY 
@@ -160,17 +185,24 @@ async function getRecipesSortByDifficultyDesc() {
               END,
               created_at DESC;
       `;
-      const [recipes] = await db.query(query);
-      return recipes;
+    const [recipes] = await db.query(query);
+    return recipes;
   } catch (err) {
-      console.error("Failed to retrieve sorted recipes by difficulty (desc) from the database:", err);
-      throw err;
+    console.error(
+      "Failed to retrieve sorted recipes by difficulty (desc) from the database:",
+      err
+    );
+    throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function addAverageScore() {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const query = `
       SELECT r.*, AVG(IFNULL(s.score, NULL)) AS averageScore
       FROM recipe r
@@ -182,13 +214,17 @@ async function addAverageScore() {
   } catch (err) {
     console.error("Failed to add average score to recipes:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function addPopularity() {
-  const db = await dbPromise;
+  let db;
   try {
-      const query = `
+    db = await pool.getConnection();
+
+    const query = `
           SELECT r.*, COALESCE(c.popularity, 0) AS popularity
           FROM recipe r
           LEFT JOIN (
@@ -197,17 +233,24 @@ async function addPopularity() {
               GROUP BY recipe_id
           ) c ON r.id = c.recipe_id;
       `;
-      const [recipes] = await db.query(query);
-      return recipes;
+    const [recipes] = await db.query(query);
+    return recipes;
   } catch (err) {
-      console.error("Failed to retrieve and augment recipes with popularity:", err);
-      throw err;
+    console.error(
+      "Failed to retrieve and augment recipes with popularity:",
+      err
+    );
+    throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getAllCollections(userId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const query = `
       SELECT *
       FROM collection
@@ -218,64 +261,72 @@ async function getAllCollections(userId) {
   } catch (error) {
     console.error("Failed to get all collections:", error);
     throw error;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getFavouriteRecipe(collections) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     if (!Array.isArray(collections)) {
       return [];
     }
 
-    if (collections.length === 0)
-      return [];
+    if (collections.length === 0) return [];
 
-    const collectionIds = collections.map(collection => collection.id);
+    const collectionIds = collections.map((collection) => collection.id);
 
     const query = `
       SELECT cr.recipe_id
       FROM collection_recipe cr
-      WHERE cr.collection_id IN (${collectionIds.join(',')});
+      WHERE cr.collection_id IN (${collectionIds.join(",")});
     `;
     const [recipeIds] = await db.query(query);
 
-    if (recipeIds.length === 0) 
-      return [];
+    if (recipeIds.length === 0) return [];
 
-    const recipeIdArray = recipeIds.map(recipe => recipe.recipe_id);
+    const recipeIdArray = recipeIds.map((recipe) => recipe.recipe_id);
 
     return recipeIdArray;
   } catch (error) {
     console.error("Failed to get favourite recipes:", error);
     throw error;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getRecipeById(recipeId) {
-  const db = await dbPromise;
   const query = `SELECT * FROM recipe WHERE id = ?`;
-
+  let db;
   try {
+    db = await pool.getConnection();
+
     const [rows] = await db.execute(query, [recipeId]);
     return rows[0];
   } catch (error) {
     console.error("Error fetching recipe by ID:", error);
     throw new Error("Failed to fetch recipe");
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getRecipeWithFavouriteState(userId, recipeId) {
-  const db = await dbPromise;
-
+  let db;
   try {
+    db = await pool.getConnection();
+
     // Fetch the recipe details
     const [recipeResult] = await db.query(SQL`
       SELECT * FROM recipe WHERE id = ${recipeId}
     `);
 
     if (recipeResult.length === 0) {
-      throw new Error('Recipe not found');
+      throw new Error("Recipe not found");
     }
 
     const recipe = recipeResult[0];
@@ -292,10 +343,11 @@ async function getRecipeWithFavouriteState(userId, recipeId) {
 
     // Return the recipe details with the favourite state
     return { ...recipe, favouriteState };
-
   } catch (err) {
     console.error("Failed to retrieve recipe with favourite state:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 

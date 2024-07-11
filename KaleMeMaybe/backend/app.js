@@ -26,6 +26,20 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 app.use(express.static(path.join(__dirname, "public")));
 
+// Setup mysql2 and initialize connection
+const pool = require("./data/database.js")
+
+setInterval(async () => {
+  try {
+      const connection = await pool.getConnection();
+      await connection.execute("SELECT 1");
+      connection.release();
+      console.log("Heartbeat query successful");
+  } catch (err) {
+      console.error("Heartbeat query error:", err);
+  }
+}, 7200000);
+
 // Setup routes
 app.use("/api", require("./routes/users.js"));
 app.use("/api", require("./routes/recipes.js"));
@@ -37,12 +51,7 @@ app.use("/api/collection", require("./routes/collections.js"));
 app.use("/api/favorites", require("./routes/favorites.js"));
 app.use("/api/discover", require("./routes/discover.js"));
 
-// Start the server running.
-//app.listen(port, function () {
-//  console.log(`App listening on port ${port}!`);
-//});
-
-if(require.main === module) {
+if (require.main === module) {
   app.listen(port, function () {
     console.log(`App listening on port ${port}!`);
   });

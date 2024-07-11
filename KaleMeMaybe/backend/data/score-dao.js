@@ -1,10 +1,10 @@
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 
 async function updateUserRating(userId, recipeId, score) {
-  const db = await dbPromise;
+  let db;
   try {
-    // Note: Ensure that `user_id` and `recipe_id` together form a unique key or primary key in your table schema.
+    db = await pool.getConnection();
     await db.execute(SQL`
   INSERT INTO score (user_id, recipe_id, score)
   VALUES (${userId}, ${recipeId}, ${score})
@@ -15,12 +15,16 @@ async function updateUserRating(userId, recipeId, score) {
   } catch (error) {
     console.error("Error updating rating:", error);
     throw new Error("Failed to update rating.");
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getAverageScore(recipeId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const [rows] = await db.execute(SQL`
       SELECT AVG(score) AS averageScore FROM score WHERE recipe_id = ${recipeId};
     `);
@@ -41,9 +45,10 @@ async function getAverageScore(recipeId) {
   } catch (error) {
     console.error("Error retrieving average score:", error);
     throw new Error(`Failed to retrieve average score: ${error.message}`);
+  } finally {
+    if (db) db.release();
   }
 }
-
 
 // Export functions.
 module.exports = {

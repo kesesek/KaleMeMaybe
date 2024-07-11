@@ -1,9 +1,11 @@
 const SQL = require("sql-template-strings");
-const dbPromise = require("./database.js");
+const pool = require("./database.js");
 
 async function getBrowsingHistory(userId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     const [history] = await db.execute(`
         SELECT DISTINCT b.user_id, b.recipe_id, r.name, r.time_consuming, r.difficulty, r.method, r.image_path, b.created_at,
         CASE WHEN cr.recipe_id IS NULL THEN FALSE ELSE TRUE END AS isCollected
@@ -22,24 +24,32 @@ async function getBrowsingHistory(userId) {
       err
     );
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function updateBrowsingHistory(userId, recipeId) {
-  const db = await dbPromise;
+  let db;
   try {
+    db = await pool.getConnection();
+
     await db.execute(`
         REPLACE INTO browsing_history (user_id, recipe_id, created_at)
         VALUES (?, ?, CURRENT_TIMESTAMP);`,[userId, recipeId]);
   } catch (err) {
     console.error("Failed to insert browsing histories to the database:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
 async function getRecipesWithIds(recipeIds) {
-  const db = await dbPromise;
+  let db;
   try {
+    const db = await pool.getConnection();
+
     const placeholders = recipeIds.map(() => '?').join(', ');
     const [recipes] = await db.query(`
         SELECT id AS recipe_id, name, time_consuming, difficulty, method, image_path
@@ -49,6 +59,8 @@ async function getRecipesWithIds(recipeIds) {
   } catch (err) {
     console.error("Failed to retrieve local browsing recipes:", err);
     throw err;
+  } finally {
+    if (db) db.release();
   }
 }
 
