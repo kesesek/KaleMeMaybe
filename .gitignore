@@ -121,3 +121,5 @@ typings/
 # DynamoDB Local files
 .dynamodb/
 /.idea/
+default-nginx.conf
+*.zip

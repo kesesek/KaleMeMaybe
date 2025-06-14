@@ -1,4 +1,4 @@
-USE project_database;
+USE kalememaybe;
 
 /* Drop existing tables */
 DROP TABLE IF EXISTS recipe_ingredient;

@@ -1,7 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useContext, useState } from "react";
 import { AuthContext } from "./contexts/AuthProvider";
-import ThirdPartyLink from "./thirdparty/ThirdPartyLink";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -97,22 +96,22 @@ export default function Login() {
           </button>
         </form>
         {/* sign up link */}
-        <p className="py-2 text-sm">
-          Don't have an account?{" "}
+        <p className="py-2 text-sm mb-10">
+          {"Don't have an account? "}
           <Link to={"/sign-up"} className="text-green-dark">
             Sign Up
           </Link>
         </p>
         {/* boundry */}
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="flex-shrink mx-4 text-gray-400 uppercase text-xs">
             or
           </span>
           <div className="flex-grow border-t border-gray-300"></div>
-        </div>
-        {/* third-party log in */}
-        <ThirdPartyLink />
+        </div> */}
+        {/* third-party log in
+        <ThirdPartyLink /> */}
       </div>
     </div>
   );

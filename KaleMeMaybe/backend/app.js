@@ -6,7 +6,14 @@ const port = process.env.PORT || 3000;
 
 //Set up cross-domain access
 const cors = require("cors");
-app.use(cors());
+const cors = require("cors");
+
+app.use(cors({
+  origin: "https://kale-me-maybe.d2dr0xvyd5yx8y.amplifyapp.com", // 前端 Amplify 域名
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true
+}));
 
 // setup dotenv
 require("dotenv").config();

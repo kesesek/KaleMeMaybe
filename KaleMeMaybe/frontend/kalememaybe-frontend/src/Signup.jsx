@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
-import ThirdPartyLink from "./thirdparty/ThirdPartyLink";
+// import ThirdPartyLink from "./thirdparty/ThirdPartyLink";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
@@ -116,22 +116,22 @@ export default function Signup() {
           </button>
         </form>
         {/* log in link */}
-        <p className="py-2 text-sm">
+        <p className="py-2 text-sm mb-10">
           Already have an account?{" "}
           <Link to={"/log-in"} className="text-green-dark">
             Log in
           </Link>
         </p>
         {/* boundry */}
-        <div className="flex items-center justify-center">
+        {/* <div className="flex items-center justify-center">
           <div className="flex-grow border-t border-gray-300"></div>
           <span className="flex-shrink mx-4 text-gray-400 uppercase text-xs">
             or
           </span>
           <div className="flex-grow border-t border-gray-300"></div>
-        </div>
+        </div> */}
         {/* third-party log in */}
-        <ThirdPartyLink />
+        {/* <ThirdPartyLink /> */}
       </div>
     </div>
   );
